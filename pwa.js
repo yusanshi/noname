@@ -45,42 +45,42 @@ function isIOS() {
 
 function defineNotificationTipStyle() {
   const css = `#screen-bottom {
-    display: none;
-    position: fixed;
-    bottom: 0px;
-    width: 100%;
-    text-align: center;
-    z-index: 99;
-  }
-  
-  #screen-bottom.show {
-    display: block;
-  }
-  
-  #notification-tip {
-    display: inline-block;
-    position: static;
-    margin-bottom: 7%;
-    padding: 15px;
-    border-radius: 10px;
-    font-size: 20px;
-    text-align: center;
-    text-shadow: none;
-    color: black;
-    background: white;
-    opacity: 0.9;
-    visibility: hidden;
-  }
-  
-  #notification-tip.show {
-    visibility: visible;
-    animation: notification-tip-fadeout 0.6s 1.4s forwards;
-  }
-  
-  @keyframes notification-tip-fadeout {
-    from {opacity: 0.9;}
-    to {opacity: 0;}
-  }`;
+  display: none;
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+  text-align: center;
+  z-index: 99;
+}
+
+#screen-bottom.show {
+  display: block;
+}
+
+#notification-tip {
+  display: inline-block;
+  position: static;
+  margin-bottom: 7%;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 20px;
+  text-align: center;
+  text-shadow: none;
+  color: black;
+  background: white;
+  opacity: 0.9;
+  visibility: hidden;
+}
+
+#notification-tip.show {
+  visibility: visible;
+  animation: notification-tip-fadeout 0.6s 1.4s forwards;
+}
+
+@keyframes notification-tip-fadeout {
+  from {opacity: 0.9;}
+  to {opacity: 0;}
+}`;
 
   const style = document.createElement("style");
   document.head.appendChild(style);
