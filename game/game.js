@@ -31047,6 +31047,16 @@
 			else{
 				if(navigator.app&&navigator.app.exitApp){
 					navigator.app.exitApp();
+				}else{
+					if(window.isAndroidApp){
+						window.onpopstate = null;
+						window.history.back();
+						window.location.replace('exit-android.html');
+					}else if(window.isIOSApp){
+						window.location.replace('exit-ios.html');
+					}else{
+						window.close();
+					}
 				}
 			}
 		},
