@@ -7579,7 +7579,10 @@
 							lib.configMenu.appearence.config.identity_font.item[i]=pack.font[i];
 							lib.configMenu.appearence.config.cardtext_font.item[i]=pack.font[i];
 							lib.configMenu.appearence.config.global_font.item[i]=pack.font[i];
-							ui.css.fontsheet.sheet.insertRule("@font-face {font-family: '"+i+"';src: url('"+lib.assetURL+"font/"+i+".ttf');}",0);
+							ui.css.fontsheet.sheet.insertRule(
+								`@font-face {font-family: '${i}'; src: url('${lib.assetURL}font/${i}.woff2') format('woff2');}`,
+								0
+							);
 						}
 						lib.configMenu.appearence.config.cardtext_font.item.default='默认';
 						lib.configMenu.appearence.config.global_font.item.default='默认';
