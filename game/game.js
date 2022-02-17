@@ -40,7 +40,7 @@
 		},
 		updateURL:'https://raw.githubusercontent.com/libccy/noname',
 		mirrorURL:'https://nakamurayuri.coding.net/p/noname/d/noname/git/raw',
-		hallURL:'47.99.105.222',
+		hallURL:'ws://47.99.105.222',
 		assetURL:'',
 		changeLog:[],
 		updates:[],
@@ -28859,16 +28859,15 @@
 		},
 		connect:function(ip,callback){
 			if(game.online) return;
-			var withport=false;
-			var index=ip.lastIndexOf(':');
-			if(index!=-1){
-				index=parseFloat(ip.slice(index+1));
-				if(index&&Math.floor(index)==index){
-					withport=true;
-				}
+			if(ip.indexOf('://')==-1){
+				// no protocol specified, use default "wss://"
+				ip='wss://'.concat(ip);
 			}
-			if(!withport){
-				ip=ip+':8080';
+			var url=new URL(ip);
+			if(url.protocol=='ws:'){
+				if(url.port==''){
+					url.port='8080';
+				}
 			}
 			_status.connectCallback=callback;
 			try{
@@ -28877,10 +28876,17 @@
 					game.ws.close();
 					delete game.ws;
 				}
-				game.ws=new WebSocket('ws://'+ip+'');
+				game.ws=new WebSocket(url.toString());
 			}
 			catch(e){
-				alert('错误：无效联机地址');
+				if(e.name=='SecurityError'){
+					alert('错误：当前的安全策略不允许未经加密的 WebSocket 连接。请使用加密连接（推荐）或'+
+					'更改浏览器的安全策略（不推荐），或在 http 协议下运行本站点（不推荐）。\n'+ 
+					'（如果您在使用 PWA，则仅能使用加密连接。）');
+				}else{
+					alert('错误：无效联机地址。'+e.toString());
+				}
+				
 				if(callback){
 					callback(false);
 				}
