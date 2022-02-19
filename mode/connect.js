@@ -5,7 +5,7 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 		start:function(){
 			var directstartmode=lib.config.directstartmode;
 			ui.create.menu(true);
-			event.textnode=ui.create.div('','输入联机地址（默认 WSS 协议）');
+			event.textnode=ui.create.div('','输入联机地址(默认wss协议)');
 			var createNode=function(){
 				if(event.created) return;
 				if(directstartmode&&lib.node){
@@ -47,7 +47,7 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 					game.connect(node.innerHTML,function(success){
 						if(!success&&event.textnode){
 							alert('连接失败');
-							event.textnode.innerHTML='输入联机地址（默认 WSS 协议）';
+							event.textnode.innerHTML='输入联机地址(默认wss协议)';
 						}
 					});
 				};
@@ -133,7 +133,7 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 							event.timeout=setTimeout(connect,1000);
 						}
 						else{
-							event.textnode.innerHTML='输入联机地址（默认 WSS 协议）';
+							event.textnode.innerHTML='输入联机地址(默认wss协议)';
 						}
 					});
 				};
