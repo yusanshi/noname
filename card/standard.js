@@ -1567,31 +1567,30 @@ game.import('card',function(lib,game,ui,get,ai,_status){
 				fullskin:true,
 				type:'trick',
 				enable:true,
-				selectTarget:2,
 				singleCard:true,
-				multitarget:true,
 				targetprompt:['被借刀','出杀目标'],
+				complexSelect:true,
 				complexTarget:true,
 				multicheck:function(){
 					return game.hasPlayer(function(current){
 						if(current.getEquip(1)){
 							return game.hasPlayer(function(current2){
-								return lib.filter.filterTarget({name:'sha'},current,current2);
+								return current.inRange(current2)&&current.canUse('sha',current2,false);
 							})
 						}
 					});
 				},
 				filterTarget:function(card,player,target){
-					if(ui.selected.targets.length==0){
-						return (player!=target&&target.getCards('e',{subtype:'equip1'}).length);
-					}
-					else{
-						return lib.filter.filterTarget({name:'sha'},ui.selected.targets[0],target);
-					}
+					return player!=target&&target.getEquip(1)&&game.hasPlayer(function(current){
+						return target!=current&&target.inRange(current)&&target.canUse('sha',current,false);
+					});
+				},
+				filterAddedTarget:function(card,player,target,preTarget){
+					return target!=preTarget&&preTarget.inRange(target)&&preTarget.canUse('sha',target,false);
 				},
 				content:function(){
 					"step 0"
-					if(event.directHit||(!_status.connectMode&&lib.config.skip_shan&&!target.hasSha())){
+					if(event.directHit||!event.addedTarget||(!_status.connectMode&&lib.config.skip_shan&&!target.hasSha())){
 						event.directfalse=true;
 					}
 					else{
@@ -2109,6 +2108,9 @@ game.import('card',function(lib,game,ui,get,ai,_status){
 					player.storage.qinggang2.remove(trigger.card);
 					if(!player.storage.qinggang2.length) player.removeSkill('qinggang2');
 				},
+				mark:true,
+				marktext:'※',
+				intro:{content:'当前防具技能已失效'},
 			},
 			qinglong_skill:{
 				equipSkill:true,
@@ -2845,6 +2847,7 @@ game.import('card',function(lib,game,ui,get,ai,_status){
 			shandian_info:'出牌阶段，对自己使用。若判定结果为黑桃2~9，则目标角色受到3点雷电伤害。若判定不为黑桃2~9，将之移动到下家的判定区里。',
 			icesha_skill:'冰杀',
 			icesha_skill_info:'防止即将造成的伤害，改为依次弃置其两张牌。',
+			qinggang2:'破防',
 		},
 		list:[
 			["spade",7,"sha"],

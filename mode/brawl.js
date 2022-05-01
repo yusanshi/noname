@@ -1155,7 +1155,7 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 					var list=[
 						['re_yuanshao','re_lidian'],
 						['zhangliao','sunquan'],
-						['xin_fazheng','lvfan'],
+						['xin_fazheng','sp_lvfan'],
 						['sunjian','lvbu'],
 						['jin_simashi','re_weiyan'],
 						['guanyu','sunce'],
@@ -2706,8 +2706,14 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 					var node=this;
 					var player1,player2;
 					if(init){
-						player1=ui.create.player(null,true).init('lvmeng');
-						player2=ui.create.player(null,true).init('guanyu');
+						player1=ui.create.player(null,true);
+						player1.classList.add('fullskin');
+						player1.node.avatar.show();
+						player1.node.avatar.setBackground('lvmeng','character');
+						player2=ui.create.player(null,true)
+						player2.classList.add('fullskin');
+						player2.node.avatar.show();
+						player2.node.avatar.setBackground('guanyu','character');
 						player1.node.marks.remove();
 						player1.node.hp.remove();
 						player2.node.marks.remove();
@@ -2730,32 +2736,30 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 						player1=this.player1;
 						player2=this.player2;
 					}
-					var rect1=player1.getBoundingClientRect();
-					var rect2=player2.getBoundingClientRect();
-					var left1=rect1.left+rect1.width/2-ui.arena.offsetLeft;
-					var left2=rect2.left+rect2.width/2-ui.arena.offsetLeft;
-					var top1=rect1.top+rect1.height/2-ui.arena.offsetTop;
-					var top2=rect2.top+rect2.height/2-ui.arena.offsetTop;
 					var func=function(){
-						//game.linexy([left1,top1,left2,top2]);
 						setTimeout(function(){
-							player1.reinit(player1.name,'re_lvmeng');
-							player2.reinit(player2.name,'re_guanyu');
-							//game.linexy([left2,top2,left1,top1],'green');
+							player1.smoothAvatar();
+							player2.smoothAvatar();
+							player1.node.avatar.setBackground('re_lvmeng','character');
+							player2.node.avatar.setBackground('re_guanyu','character');
 						},1500);
 						setTimeout(function(){
-							player1.reinit(player1.name,'sp_lvmeng');
-							player2.reinit(player2.name,'jsp_guanyu');
-							//game.linexy([left1,top1,left2,top2],'thunder');
+							player1.smoothAvatar();
+							player2.smoothAvatar();
+							player1.node.avatar.setBackground('sp_lvmeng','character');
+							player2.node.avatar.setBackground('jsp_guanyu','character');
 						},3000);
 						setTimeout(function(){
-							player1.reinit(player1.name,'shen_lvmeng');
-							player2.reinit(player2.name,'shen_guanyu');
-							//game.linexy([left2,top2,left1,top1],'fire');
+							player1.smoothAvatar();
+							player2.smoothAvatar();
+							player1.node.avatar.setBackground('shen_lvmeng','character');
+							player2.node.avatar.setBackground('shen_guanyu','character');
 						},4500);
 						setTimeout(function(){
-							player1.reinit(player1.name,'lvmeng');
-							player2.reinit(player2.name,'guanyu');
+							player1.smoothAvatar();
+							player2.smoothAvatar();
+							player1.node.avatar.setBackground('lvmeng','character');
+							player2.node.avatar.setBackground('guanyu','character');
 						},6000);
 					};
 					node.showcaseinterval=setInterval(func,6000);
@@ -3701,6 +3705,30 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
    							caoren:'樊城曹仁',
    							re_lvmeng:'江东吕蒙',
    							guanping:'荆州关平',
+   						},
+   					},
+   				},
+   				{
+   					name:'雒城之战',
+   					place:[true,false,false,true],
+   					character:['liubei','re_wuyi','zhangren','pangtong'],
+   					lib:{
+   						character:{
+   							liubei:['male','shu',4,['rezhijian','jijiu','reyingzi'],[]],
+   							re_wuyi:['male','qun',4,['weijing','rerende'],[]],
+   							zhangren:['male','qun',4,['shefu','gnsheque'],[]],
+   							pangtong:['male','shu',3,['dujin'],[]],
+   						},
+   						translate:{
+   							liubei:'雒城刘备',
+   							re_wuyi:'雒城吴懿',
+   							zhangren:'雒城张任',
+   							pangtong:'雒城庞统',
+   							rezhijian:'厚恩',
+   							zhijian:'厚恩',
+   							jijiu:'驰援',
+   							reyingzi:'征令',
+   							rerende:'遣军',
    						},
    					},
    				},
