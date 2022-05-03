@@ -149,8 +149,8 @@
 						this.sendl('eventsdenied','ban');
 					}
 					else{
-						cfg.nickname=util.getNickname(nickname);
-						cfg.avatar=cfg.nickname||'caocao';
+						cfg.nickname=util.getNickname(cfg.nickname);
+						cfg.avatar=cfg.avatar||'caocao';
 						cfg.creator=id;
 						cfg.id=util.getid();
 						cfg.members=[id];
