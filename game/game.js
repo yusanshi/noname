@@ -36975,6 +36975,13 @@
 						if(!config.fixed){
 							input.contentEditable=true;
 							input.style.webkitUserSelect='text';
+							
+							// Only allow pasting as plain text
+							node.addEventListener('paste', function (e) {
+								e.preventDefault()
+								var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+								document.execCommand("insertHTML", false, text);
+							});
 						}
 						input.style.minWidth='10px';
 						input.onkeydown=function(e){
@@ -36984,6 +36991,7 @@
 								input.blur();
 							}
 						};
+
 						if(config.name=='联机昵称'){
 							input.innerHTML=config.init||'无名玩家';
 							input.onblur=function(){

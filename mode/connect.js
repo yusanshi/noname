@@ -39,6 +39,13 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 				node.style.webkitUserSelect='text';
 				node.style.textAlign='center';
 
+				// paste as plain text
+				node.addEventListener('paste', function (e) {
+					e.preventDefault()
+					var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+					document.execCommand("insertHTML", false, text);
+				});
+
 				var connect=function(e){
 					event.textnode.innerHTML='正在连接...';
 					clearTimeout(event.timeout);
