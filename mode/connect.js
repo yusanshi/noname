@@ -25,13 +25,13 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 
 				event.created=true;
 				var node=ui.create.div('.shadowed');
-				node.style.width='500px';
+				node.style.width='600px';
 				node.style.height='30px';
 				node.style.lineHeight='30px';
 				node.style.fontFamily='xinwei';
 				node.style.fontSize='30px';
 				node.style.padding='10px';
-				node.style.left='calc(50% - 250px)';
+				node.style.left='calc(50% - 300px)';
 				node.style.top='calc(50% - 20px)';
 				node.style.whiteSpace='nowrap';
 				node.innerHTML=lib.config.last_ip||lib.hallURL;
