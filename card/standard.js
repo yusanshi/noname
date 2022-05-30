@@ -81,7 +81,9 @@ game.import('card',function(lib,game,ui,get,ai,_status){
 				usable:1,
 				updateUsable:'phaseUse',
 				global:'icesha_skill',
-				range:{attack:1},
+				range:function(card,player,target){
+					return player.inRange(target);
+				},
 				selectTarget:1,
 				cardPrompt:function(card){
 					if(card.nature=='stab') return '出牌阶段，对你攻击范围内的一名角色使用。其须使用一张【闪】，且在此之后需弃置一张手牌（没有则不弃）。否则你对其造成1点伤害。';
@@ -1727,6 +1729,7 @@ game.import('card',function(lib,game,ui,get,ai,_status){
 						value:8,
 					},
 					result:{
+						ignoreStatus:true,
 						target:function(player,target){
 							var num=target.hp-target.countCards('h')-2;
 							if(num>-1) return -0.01;
@@ -1734,7 +1737,7 @@ game.import('card',function(lib,game,ui,get,ai,_status){
 							if(target.isTurnedOver()) num/=2;
 							var dist=get.distance(player,target,'absolute');
 							if(dist<1) dist=1;
-							return num/Math.sqrt(dist);
+							return num/Math.sqrt(dist)*get.threaten(target,player);
 						}
 					},
 					tag:{

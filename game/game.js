@@ -6668,7 +6668,8 @@
 			'<li>护甲：和体力类似，每点护甲可抵挡一点伤害，但不影响手牌上限。'+
 			'<li>随从：通过技能获得，拥有独立的技能、手牌区和装备区（共享判定区），出场时替代主武将的位置；随从死亡时自动切换回主武将。'+
 			'<li>发现：从三张随机亮出的牌中选择一张，若无特殊说明，则获得此牌。'+
-			'<li>蓄力技：发动时可以增大黄色的数字。若如此做，红色数字于技能的结算过程中改为原来的两倍。'
+			'<li>蓄力技：发动时可以增大黄色的数字。若如此做，红色数字于技能的结算过程中改为原来的两倍。'+
+			'<li>施法：若技能的拥有者未拥有等待执行的同名“施法”效果，则其可以发动“施法”技能。其须选择声明一个数字X（X∈[1, 3]），在此之后的第X个回合结束时，其执行“施法”效果，且效果中的数字X视为与技能发动者声明的X相同。'
 		},
 		setIntro:function(node,func,left){
 			if(lib.config.touchscreen){
@@ -7372,7 +7373,7 @@
 				};
 				window.onerror=function(msg, src, line, column, err){
 					var str=msg;
-					if(window._status&&_status.event){
+					if(_status&&_status.event){
 						var evt=_status.event;
 						str+=('\n'+evt.name+': '+evt.step);
 						if(evt.parent) str+='\n'+evt.parent.name+': '+evt.parent.step;
@@ -13041,10 +13042,17 @@
 							lose_list:lose_list,
 						}).setContent('chooseToCompareLose');
 					}
+					event.lose_list=lose_list;
+					event.getNum=function(card){
+						for(var i of event.lose_list){
+							if(i[1].contains&&i[1].contains(card)) return get.number(card,i[0]);
+						}
+						return get.number(card,false);
+					}
 					event.cardlist=cards;
 					event.cards=cards;
 					event.card1=result[0].cards[0];
-					event.num1=event.card1.number;
+					event.num1=event.getNum(event.card1);
 					event.iwhile=0;
 					event.result={
 						player:event.card1,
@@ -13059,7 +13067,7 @@
 						event.target.animate('target');
 						player.animate('target');
 						event.card2=event.cardlist[event.iwhile];
-						event.num2=event.card2.number;
+						event.num2=event.getNum(event.card2);
 						game.log(event.target,'的拼点牌为',event.card2);
 						player.line(event.target);
 						player.$compare(event.card1,event.target,event.card2);
@@ -13238,8 +13246,14 @@
 					player.$compare(event.card1,target,event.card2);
 					game.log(player,'的拼点牌为',event.card1);
 					game.log(target,'的拼点牌为',event.card2);
-					event.num1=event.card1.number;
-					event.num2=event.card2.number;
+					var getNum=function(card){
+						for(var i of event.lose_list){
+							if(i[1]==card) return get.number(card,i[0]);
+						}
+						return get.number(card,false);
+					}
+					event.num1=getNum(event.card1);
+					event.num2=getNum(event.card2);
 					event.trigger('compare');
 					game.delay(0,1500);
 					"step 6"
@@ -16186,26 +16200,7 @@
 					"step 3"
 					event.trigger('damageBegin4');
 					"step 4"
-					if(num>0&&player.hujia&&!player.hasSkillTag('nohujia')){
-						if(num>=player.hujia){
-							event.hujia=player.hujia;
-							num-=player.hujia;
-						}
-						else{
-							event.hujia=num;
-							num=0;
-						}
-						game.log(player,'的护甲抵挡了'+get.cnNumber(event.hujia)+'点伤害');
-						player.changeHujia(-event.hujia).type='damage';
-					}
-					event.num=num;
-					if(num<=0){
-						event.trigger('damageZero');
-						delete event.filterStop;
-						event.finish();
-						event._triggered=null;
-					}
-					"step 5"
+					//moved changeHujia to changeHp
 					if(lib.config.background_audio){
 						game.playAudio('effect','damage'+(num>1?'2':''));
 					}
@@ -16254,7 +16249,8 @@
 								}
 							}
 						},event.nature,player);
-						player.$damagepop(-num,event.nature);
+						var numx=Math.max(0,num-player.hujia);
+						player.$damagepop(-numx,event.nature);
 					}
 					if(!event.notrigger){
 						if(num==0){
@@ -16265,7 +16261,7 @@
 							event.trigger('damage');
 						}
 					}
-					"step 6"
+					"step 5"
 					if(player.hp<=0&&player.isAlive()){
 						game.delayx();
 						event._dyinged=true;
@@ -16311,7 +16307,7 @@
 							}
 						}
 					}
-					"step 7"
+					"step 6"
 					if(!event.notrigger) event.trigger('damageSource');
 				},
 				recover:function(){
@@ -16383,6 +16379,16 @@
 					player.update();
 				},
 				changeHp:function(){
+					//changeHujia moved here
+					if(num<0&&player.hujia>0&&event.getParent().name=='damage'&&!player.hasSkillTag('nohujia')){
+						event.hujia=Math.min(-num,player.hujia);
+						event.getParent().hujia=event.hujia;
+						event.num+=event.hujia;
+						game.log(player,'的护甲抵挡了'+get.cnNumber(event.hujia)+'点伤害');
+						player.changeHujia(-event.hujia).type='damage';
+					}
+					//old part
+					num=event.num;
 					player.hp+=num;
 					if(isNaN(player.hp)) player.hp=0;
 					if(player.hp>player.maxHp) player.hp=player.maxHp;
@@ -16998,6 +17004,7 @@
 			player:{
 				//新函数
 				setSeatNum:function(num){
+					_status.seatNumSettled=true;
 					game.broadcastAll(function(player,num){
 						player.seatNum=num;
 					},this,num);
@@ -17299,7 +17306,8 @@
 					if(mod1!='unchanged') return mod1;
 					var mod2=game.checkMod(from,to,'unchanged','inRangeOf',to);
 					if(mod2!='unchanged') return mod2;
-					if(from.getAttackRange()<1) return false;
+					var range=from.getAttackRange();
+					if(range<1) return false;
 					var player=from,m,n=1,i;
 					var fxy,txy;
 					if(game.chess){
@@ -17347,9 +17355,6 @@
 							m+=info.globalFrom;
 							n+=info.globalFrom;
 						}
-						if(info.attackFrom){
-							m+=info.attackFrom;
-						}
 					}
 					for(i=0;i<equips2.length;i++){
 						var info=get.info(equips2[i]).distance;
@@ -17362,7 +17367,7 @@
 							m+=info.attaclTo;
 						}
 					}
-					return m<=1;
+					return m<=range;
 				},
 				inRangeOf:function(source){
 					return source.inRange(this);
@@ -17592,6 +17597,7 @@
 
 					var hp1=get.infoHp(info[2]);
 					var maxHp1=get.infoMaxHp(info[2]);
+					var hujia1=get.infoHujia(info[2]);
 					
 					this.node.avatar.show();
 					this.node.count.show();
@@ -17602,7 +17608,7 @@
 					this.group=info[1];
 					this.hp=hp1;
 					this.maxHp=maxHp1;
-					this.hujia=0;
+					this.hujia=hujia1;
 					this.node.intro.innerHTML=lib.config.intro;
 					this.node.name.dataset.nature=get.groupnature(this.group);
 					lib.setIntro(this);
@@ -17640,6 +17646,8 @@
 						this.name2=character2;
 						var hp2=get.infoHp(info2[2]);
 						var maxHp2=get.infoMaxHp(info2[2]);
+						var hujia2=get.infoHujia(info2[2]);
+						this.hujia+=hujia2;
 						var double_hp;
 						if(_status.connectMode||get.mode()=='single'){
 							double_hp='pingjun';
@@ -18423,7 +18431,7 @@
 						if(str) game.log(this,'移去了',get.cnNumber(num),'个','#g【'+str+'】');
 					}
 					this.syncStorage(i);
-					this[this.storage[i]?'markSkill':'unmarkSkill'](i);
+					this[(this.storage[i]||(lib.skill[i]&&lib.skill[i].mark))?'markSkill':'unmarkSkill'](i);
 				},
 				addMark:function(i,num,log){
 					if(typeof num!='number'||!num) num=1;
@@ -21805,12 +21813,17 @@
 						else{
 							node=ui.create.div('.card.mark.drawinghidden');
 							this.node.marks.insertBefore(node,this.node.marks.childNodes[1]);
-							var str=lib.translate[name+'_bg'];
-							if(!str||str[0]=='+'||str[0]=='-'){
-								str=get.translation(name)[0];
+							if(lib.skill[name]&&lib.skill[name].markimage){
+								node.setBackgroundImage(lib.skill[name].markimage);
+								node.style['box-shadow']='none';
 							}
-							ui.create.div('.background.skillmark',node).innerHTML=str;
-							// node.style.fontFamily=lib.config.card_font;
+							else{
+								var str=lib.translate[name+'_bg'];
+								if(!str||str[0]=='+'||str[0]=='-'){
+									str=get.translation(name)[0];
+								}
+								ui.create.div('.background.skillmark',node).innerHTML=str;
+							}
 						}
 						node.name=name;
 						node.skill=skill||name;
@@ -22692,22 +22705,41 @@
 				getAttackRange:function(raw){
 					var player=this;
 					var range=0;
-					if(raw) range=game.checkMod(player,player,range,'globalFrom',player);
-					range=game.checkMod(player,player,range,'attackFrom',player);
-					var equips=player.getCards('e',function(card){
-				return !ui.selected.cards||!ui.selected.cards.contains(card);
-			});
-					for(var i=0;i<equips.length;i++){
-						var info=get.info(equips[i]).distance;
-						if(!info) continue;
-						if(raw&&info.globalFrom){
-							range+=info.globalFrom;
+					if(raw){
+						range=game.checkMod(player,player,range,'globalFrom',player);
+						range=game.checkMod(player,player,range,'attackFrom',player);
+						var equips=player.getCards('e',function(card){
+							return !ui.selected.cards||!ui.selected.cards.contains(card);
+						});
+						for(var i=0;i<equips.length;i++){
+							var info=get.info(equips[i],false).distance;
+							if(!info) continue;
+							if(info.globalFrom){
+								range+=info.globalFrom;
+							}
+							if(info.attackFrom){
+								range+=info.attackFrom;
+							}
 						}
-						if(info.attackFrom){
-							range+=info.attackFrom;
+						return (1-range);
+					}
+					var base=game.checkMod(player,'unchanged','attackRangeBase',player);
+					if(base!='unchanged') range=base;
+					else{
+						range=1;
+						var equips=player.getCards('e',function(card){
+							return !ui.selected.cards||!ui.selected.cards.contains(card);
+						});
+						for(var i=0;i<equips.length;i++){
+							var info=get.info(equips[i],false).distance;
+							if(!info) continue;
+							if(info.attackFrom){
+								range-=info.attackFrom;
+							}
 						}
 					}
-					return (1-range);
+					range=game.checkMod(player,range,'attackRange',player);
+					return range;
 				},
 				getGlobalFrom:function(){
 					var player=this;
@@ -26034,7 +26066,8 @@
 					return item;
 				},
 				addText:function(str,center){
-					if(center!==false){
+					if(str&&str.indexOf('<div')==0) this.add(str);
+					else if(center!==false){
 						this.add('<div class="text center">'+str+'</div>');
 					}
 					else{
@@ -26668,21 +26701,22 @@
 				return false;
 			},
 			targetInRange:function(card,player,target){
+				var info=get.info(card);
+				var range=info.range;
+				var outrange=info.outrange;
+				if(range==undefined&&outrange==undefined) return true;
+				
 				var mod=game.checkMod(card,player,target,'unchanged','targetInRange',player);
 				var extra=0;
 				if(mod!='unchanged'){
 					if(typeof mod=='boolean') return mod;
 					if(typeof mod=='number') extra=mod;
 				}
-				var info=get.info(card);
-				var range=info.range;
-				var outrange=info.outrange;
-				if(range==undefined&&outrange==undefined) return true;
+				if(typeof info.range=='function') return info.range(card,player,target);
 				
 				if(player.hasSkill('undist')||target.hasSkill('undist')) return false;
 				for(var i in range){
 					if(i=='attack'){
-						if(player.inRange(target)) return true;
 						var range2=player.getAttackRange();
 						if(range2<=0) return false;
 						var distance=get.distance(player,target)+extra;
@@ -26744,7 +26778,7 @@
 				else if(get.itemtype(select)=='select') range=select;
 				else if(typeof select=='function') range=select(card,player);
 				game.checkMod(card,player,range,'selectTarget',player);
-				if(info.singleCard) return [range[0]*2,range[1]*2];
+				if(info.singleCard&&info.filterAddedTarget) return [range[0]*2,range[1]*2];
 				return range;
 			},
 			judge:function(card,player,target){
@@ -27461,7 +27495,8 @@
 					content:function(content,player){
 						return '已有'+get.cnNumber(player.hujia)+'点护甲值';
 					}
-				}
+				},
+				markimage:'image/card/shield.png',
 			},
 			counttrigger:{
 				trigger:{global:'phaseAfter'},
@@ -27493,9 +27528,6 @@
 				popup:false,
 				firstDo:true,
 				content:function(){
-					// for(var i=0;i<game.players.length;i++){
-					// 	game.players[i].in();
-					// }
 					if(player.isTurnedOver()){
 						trigger.cancel();
 						player.turnOver();
@@ -27504,20 +27536,31 @@
 					else{
 						player.phaseSkipped=false;
 					}
-					if((player==_status.roundStart||_status.roundSkipped)&&!trigger.skill){
-						delete _status.roundSkipped;
-						game.roundNumber++;
-						trigger._roundStart=true;
-						game.updateRoundNumber();
-						for(var i=0;i<game.players.length;i++){
-							if(game.players[i].isOut()&&game.players[i].outCount>0){
-								game.players[i].outCount--;
-								if(game.players[i].outCount==0&&!game.players[i].outSkills){
-									game.players[i].in();
-								}
+					if(!trigger.skill){
+						var isRound=_status.roundSkipped;
+						if(_status.seatNumSettled){
+							var seatNum=player.getSeatNum();
+							if(seatNum!=0){
+								if(typeof _status.lastSeatNum!='number'||seatNum<_status.lastSeatNum) isRound=true;
+								_status.lastSeatNum=seatNum;
 							}
 						}
-						event.trigger('roundStart');
+						else if(player==_status.roundStart) isRound=true;
+						if(isRound){
+							delete _status.roundSkipped;
+							game.roundNumber++;
+							trigger._roundStart=true;
+							game.updateRoundNumber();
+							for(var i=0;i<game.players.length;i++){
+								if(game.players[i].isOut()&&game.players[i].outCount>0){
+									game.players[i].outCount--;
+									if(game.players[i].outCount==0&&!game.players[i].outSkills){
+										game.players[i].in();
+									}
+								}
+							}
+							event.trigger('roundStart');
+						}
 					}
 				},
 			},
@@ -34001,6 +34044,10 @@
 			}
 			else{
 				game.addVideo('swapSeat',null,[player1.dataset.position,player2.dataset.position]);
+				var seat1=player1.seatNum;
+				var seat2=player2.seatNum;
+				player2.seatNum=seat1;
+				player1.seatNum=seat2;
 				var temp1,pos,i,num;
 				temp1=player1.dataset.position;
 				player1.dataset.position=player2.dataset.position;
@@ -42419,7 +42466,7 @@
 									delete window.noname_skin_list;
 									var asset_version=updates.shift();
 
-									var skipcharacter=[],skipcard=['tiesuo_mark'];
+									var skipcharacter=[],skipcard=['tiesuo_mark','shield'];
 									if(!lib.config.asset_full){
 										for(var i=0;i<lib.config.all.sgscharacters.length;i++){
 											var pack=lib.characterPack[lib.config.all.sgscharacters[i]];
@@ -45533,7 +45580,7 @@
 								node.node.hp.remove();
 								node.node.group.remove();
 								node.node.intro.remove();
-								if(node.node.replaceButton) node.node.replaceButton.remove();
+								if(node.node.replaceButton) node.node.replaceButton.remove();;
 							}
 							node.node={
 								name:ui.create.div('.name',node),
@@ -45562,7 +45609,13 @@
 									node.node.group.dataset.nature=get.groupnature(double[double.length==2?1:0]);
 								}
 								ui.create.div(node.node.hp);
-								var textnode=ui.create.div('.text',get.numStr(infoitem[2]),node.node.hp);
+								var hp=get.infoHp(infoitem[2]),maxHp=get.infoMaxHp(infoitem[2]),hujia=get.infoHujia(infoitem[2]);
+								var str=get.numStr(hp);
+								if(hp!=maxHp){
+									str+='/';
+									str+=get.numStr(maxHp);
+								}
+								var textnode=ui.create.div('.text',str,node.node.hp);
 								if(infoitem[2]==0){
 									node.node.hp.hide();
 								}
@@ -45572,10 +45625,15 @@
 								else{
 									node.node.hp.dataset.condition='high';
 								}
+								if(hujia>0){
+									ui.create.div(node.node.hp,'.shield');
+									ui.create.div('.text',get.numStr(hujia),node.node.hp);
+								}
 							}
 							else{
 								var hp=get.infoHp(infoitem[2]);
 								var maxHp=get.infoMaxHp(infoitem[2]);
+								var shield=get.infoHujia(infoitem[2]);
 								if(maxHp>14){
 									if(typeof infoitem[2]=='string') node.node.hp.innerHTML=infoitem[2];
 									else node.node.hp.innerHTML=get.numStr(infoitem[2]);
@@ -45585,6 +45643,9 @@
 									for(var i=0;i<maxHp;i++){
 										var next=ui.create.div('',node.node.hp);
 										if(i>=hp) next.classList.add('exclude');
+									}
+									for(var i=0;i<shield;i++){
+										ui.create.div(node.node.hp,'.shield');
 									}
 								}
 							}
@@ -50289,14 +50350,21 @@
 		infoHp:function(hp){
 			if(typeof hp=='number') return hp;
 			else if(typeof hp=='string'&&hp.indexOf('/')!=-1){
-				return parseInt(hp.slice(0,hp.indexOf('/')));
+				return parseInt(hp.split('/')[0]);
 			}
 			return 0;
 		},
 		infoMaxHp:function(hp){
 			if(typeof hp=='number') return hp;
 			else if(typeof hp=='string'&&hp.indexOf('/')!=-1){
-				return parseInt(hp.slice(hp.indexOf('/')+1));
+				return parseInt(hp.split('/')[1]);
+			}
+			return 0;
+		},
+		infoHujia:function(hp){
+			if(typeof hp=='string'&&hp.indexOf('/')!=-1){
+				var splited=hp.split('/');
+				if(splited.length>2) return parseInt(splited[2]);
 			}
 			return 0;
 		},
@@ -51917,7 +51985,15 @@
 			}
 		},
 		number:function(card,player){
-			//啥时候狗卡出相关技能我再完善
+			//狗卡你是真敢出啊
+			if(player!==false){
+				var number=card.number;
+				var owner=player||get.owner(card);
+				if(owner){
+					return game.checkMod(card,owner,number,'cardnumber',owner);
+				}
+				return number;
+			}
 			if(typeof card.number=='number') return card.number;
 			else if(card.cards&&card.cards.length==1) return get.number(card.cards[0]);
 			return null;
@@ -52894,7 +52970,7 @@
 					}
 				}
 
-				var skills=node.getSkills(null,null,false).slice(0);
+				var skills=node.getSkills(null,false,false).slice(0);
 				var skills2=game.filterSkills(skills,node);
 				if(node==game.me&&node.hiddenSkills.length){
 					skills.addArray(node.hiddenSkills);
@@ -54069,6 +54145,7 @@
 			var result=0;
 			var value;
 			if(Array.isArray(card)){
+				if(!card.length) return 0;
 				value=0;
 				for(var i=0;i<card.length;i++){
 					value+=get.value(card[i],player,method);
@@ -54339,28 +54416,30 @@
 				}
 				result2+=temp02;
 				result1+=temp01;
-				if(get.attitude(player,target)<0){
-					result2*=Math.sqrt(threaten);
-				}
-				else{
-					result2*=Math.sqrt(Math.sqrt(threaten));
-				}
-				if(target.hp==1) result2*=2.5;
-				if(target.hp==2) result2*=1.8;
-				if(target.countCards('h')==0){
-					if(get.tag(card,'respondSha')||get.tag(card,'respondShan')){
-						result2*=1.7;
+				if(typeof card=='object'&&!result.ignoreStatus){
+					if(get.attitude(player,target)<0){
+						result2*=Math.sqrt(threaten);
 					}
 					else{
-						result2*=1.5;
+						result2*=Math.sqrt(Math.sqrt(threaten));
 					}
+					if(target.hp==1) result2*=2.5;
+					if(target.hp==2) result2*=1.8;
+					if(target.countCards('h')==0){
+						if(get.tag(card,'respondSha')||get.tag(card,'respondShan')){
+							result2*=1.7;
+						}
+						else{
+							result2*=1.5;
+						}
+					}
+					if(target.countCards('h')==1) result2*=1.3;
+					if(target.countCards('h')==2) result2*=1.1;
+					if(target.countCards('h')>3) result2*=0.5;
+					if(target.hp==4) result2*=0.9;
+					if(target.hp==5) result2*=0.8;
+					if(target.hp>5) result2*=0.6;
 				}
-				if(target.countCards('h')==1) result2*=1.3;
-				if(target.countCards('h')==2) result2*=1.1;
-				if(target.countCards('h')>3) result2*=0.5;
-				if(target.hp==4) result2*=0.9;
-				if(target.hp==5) result2*=0.8;
-				if(target.hp>5) result2*=0.6;
 			}
 			else{
 				result2+=temp02;
@@ -54509,7 +54588,7 @@
 				}
 				result2+=temp02;
 				result1+=temp01;
-				if(typeof card=='object'){
+				if(typeof card=='object'&&!result.ignoreStatus){
 						if(get.attitude(player,target)<0){
 						result2*=Math.sqrt(threaten);
 					}
@@ -54740,7 +54819,7 @@
 						cards[ix].classList.add('selected');
 						ui.selected.cards.add(cards[ix]);
 						game.check();
-						if(ui.selected.cards.length>=range[ix]){
+						if(ui.selected.cards.length>=range[0]){
 							ok=true;
 						}
 						if(ui.selected.cards.length==range[1]){
