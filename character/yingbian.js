@@ -4,7 +4,7 @@ game.import('character',function(lib,game,ui,get,ai,_status){
 		name:'yingbian',
 		connect:true,
 		character:{
-			jin_yanghu:['male','jin',4,['huaiyuan','chongxin','dezhang']],
+			jin_jiachong:['male','jin',3,['xiongshu','jianhui']],
 			xuangongzhu:['female','jin',3,['gaoling','qimei','ybzhuiji'],['hiddenSkill']],
 			xinchang:['male','jin',3,['canmou','congjian']],
 			yangzhi:['female','jin',3,['wanyi','maihuo']],
@@ -30,12 +30,131 @@ game.import('character',function(lib,game,ui,get,ai,_status){
 			yingbian:{
 				yingbian_pack1:['jin_simayi','jin_zhangchunhua','ol_lisu','simazhou','cheliji','ol_huaxin'],
 				yingbian_pack2:['jin_simashi','jin_xiahouhui','zhanghuyuechen','shibao','jin_yanghuiyu'],
-				yingbian_pack3:['jin_simazhao','jin_wangyuanji','duyu','weiguan','xuangongzhu','jin_yanghu'],
-				yingbian_pack4:['zhongyan','xinchang'],
+				yingbian_pack3:['jin_simazhao','jin_wangyuanji','duyu','weiguan','xuangongzhu'],
+				yingbian_pack4:['zhongyan','xinchang','jin_jiachong'],
 				yingbian_pack5:['yangyan','yangzhi'],
 			},
 		},
 		skill:{
+			xiongshu:{
+				audio:2,
+				trigger:{global:'phaseUseBegin'},
+				direct:true,
+				filter:function(event,player){
+					return player!=event.player&&event.player.countCards('he')>0&&player.countCards('he')>=player.countMark('xiongshu_count');
+				},
+				content:function(){
+					'step 0'
+					event.target=trigger.player;
+					var num=player.countMark('xiongshu_count');
+					if(num>0) player.chooseToDiscard('he',num,get.prompt('xiongshu',trigger.player),'弃置'+get.cnNumber(num)+'张牌并展示其一张牌').set('goon',get.attitude(player,event.target)<0).set('ai',function(card){
+						if(!_status.event.goon) return 0;
+						return 6-_status.event.player.countMark('xiongshu_count')-get.value(card);
+					}).logSkill=['xiongshu',trigger.player];
+					else player.chooseBool(get.prompt('xiongshu',trigger.player),'展示其一张牌').set('goon',get.attitude(player,event.target)<0).set('ai',function(card){
+						return _status.event.goon;
+					})
+					'step 1'
+					if(result.bool){
+						if(!result.cards.length) player.logSkill('xiongshu',target);
+						player.addTempSkill('xiongshu_count','roundStart');
+						player.addMark('xiongshu_count',1,false);
+					}
+					if(result.bool&&target.countCards('he')>0){
+						player.choosePlayerCard(target,true,'he');
+					}
+					else event.finish();
+					'step 2'
+					var card=result.cards[0],name=get.name(card),str=get.translation(target);
+					player.showCards(card,get.translation(player)+'对'+str+'发动了【凶竖】');
+					player.addTempSkill('xiongshu_effect','phaseUseAfter');
+					player.storage.xiongshu_effect=[card,name];
+					if(Math.random()<0.5){
+						target.storage.xiongshu_ai=name;
+						target.addTempSkill('xiongshu_ai','phaseUseAfter');
+					}
+					player.chooseControl('会使用','不会使用').set('prompt','预测：'+str+'是否会使用'+get.translation(name)+'？').set('choice',function(){
+						if(!target.hasValueTarget(card)) return 1;
+						return Math.random()<0.5?0:1;
+					}()).set('ai',()=>_status.event.choice);
+					'step 3'
+					player.storage.xiongshu_effect[2]=(result.index==0);
+				},
+				ai:{expose:0.35},
+				subSkill:{
+					ai:{
+						charlotte:true,
+						onremove:true,
+						ai:{
+							effect:{
+								player:function(card,player,target){
+									if(card.name==player.storage.xiongshu_ai) return 'zeroplayertarget';
+								},
+							},
+						},
+					},
+					count:{
+						charlotte:true,
+						onremove:true,
+					},
+					effect:{
+						trigger:{global:'phaseUseEnd'},
+						forced:true,
+						charlotte:true,
+						onremove:true,
+						filter:function(event,player){
+							var info=player.storage.xiongshu_effect;
+							return Array.isArray(info)&&event.player.isIn();
+						},
+						logTarget:'player',
+						content:function(){
+							var target=trigger.player;
+							var info=player.storage.xiongshu_effect;
+							var card=info[0];
+							if(target.hasHistory('useCard',function(evt){
+								return evt.card.name==info[1]&&evt.getParent('phaseUse')==trigger;
+							})==info[2]) target.damage();
+							else if(target.getCards('hej').contains(card)) player.gain(card,target,'give');
+						},
+					},
+				},
+			},
+			jianhui:{
+				audio:2,
+				getLastPlayer:function(evt,player){
+					var history=player.getAllHistory('damage');
+					if(!history.length) return null;
+					var i=history.indexOf(evt);
+					if(i==-1) i=history.length-1;
+					else i--;
+					for(i;i>=0;i--){
+						if(history[i].source) return history[i].source;
+					}
+					return null;
+				},
+				trigger:{player:'damageEnd'},
+				forced:true,
+				filter:function(event,player){
+					return event.source&&event.source.isIn()&&event.source==lib.skill.jianhui.getLastPlayer(event,player)&&event.source.countCards('he')>0;
+				},
+				content:function(){
+					trigger.source.chooseToDiscard('he',true);
+				},
+				group:'jianhui_draw',
+				subSkill:{
+					draw:{
+						trigger:{source:'damageSource'},
+						forced:true,
+						logTarget:'player',
+						filter:function(event,player){
+							return event.player==lib.skill.jianhui.getLastPlayer(event,player);
+						},
+						content:function(){
+							player.draw();
+						},
+					},
+				},
+			},
 			huaiyuan:{
 				audio:2,
 				trigger:{
@@ -281,7 +400,7 @@ game.import('character',function(lib,game,ui,get,ai,_status){
 						trigger:{player:'loseAfter'},
 						forced:true,
 						filter:function(event,player){
-							return event.type=='discard'&&event.getParent(3).name!='weishu_discard'&&event.getParent('phaseDiscard').player!=player&&game.hasPlayer((target)=>(target!=player&&target.countDiscardableCards(player,'he')>0));
+							return event.type=='discard'&&event.getParent(3).name!='weishu_discard'&&event.getParent('phaseDiscard').player!=player&&event.cards2.length>0&&game.hasPlayer((target)=>(target!=player&&target.countDiscardableCards(player,'he')>0));
 						},
 						content:function(){
 							'step 0'
@@ -3019,7 +3138,7 @@ game.import('character',function(lib,game,ui,get,ai,_status){
 			yangyan:'杨艳（238年－274年8月25日），字琼芝，弘农郡华阴县（今陕西省华阴市）人，晋武帝司马炎第一任皇后，曹魏通事郎杨炳之女。自幼父母双亡，为舅舅赵俊所养，跟随继母段氏生活。聪明贤慧，善于书法，天生丽质，娴熟女红，嫁给了世子司马炎。泰始元年（265年），晋武帝即位，建立西晋。泰始二年（266年），杨艳受册为皇后，深得晋武帝宠幸，生下三子三女，包括晋惠帝司马衷。泰始十年（274年），去世，时年三十七，陪葬于峻阳陵，谥号武元皇后。',
 			yangzhi:'杨芷（259年－292年3月6日），字季兰，小字男胤，弘农郡华阴县（今陕西省华阴市）人，晋武帝司马炎第二任皇后，东汉太尉杨震幼子杨奉后裔，东汉末年东莱太守、蓩亭侯杨众曾孙女，西晋太傅杨骏与嫡妻庞氏之女，武元皇后杨艳堂妹。咸宁二年（276年），立为皇后，史称“婉嫕有妇德， 美映椒房”，得宠于晋武帝。生渤海殇王，早薨，之后再无生育。其父杨骏擅权引起皇后贾南风忌恨，贾南风联络汝南王司马亮、楚王司马玮发动政变，杀死杨骏，并唆使大臣上书状告杨芷谋反，让晋惠帝司马衷将其贬为庶人，押到金墉城居住。元康二年（292年），杨芷冻饿而死，谥号武悼皇后。',
 			xinchang:'辛敞（生卒年不详），字泰雍，陇西人氏，是曹魏时代官员。卫尉辛毗之子，辛宪英之弟。',
-			xuangongzhu:'高陵宣公主（？—？）司马氏，晋宣帝司马懿第二女。司马氏下嫁杜预。其兄弟司马炎登基时，司马氏已经去世。泰始年间（265年—274年）追赠高陵公主。',
+			xuangongzhu:'高陵宣公主（？—？）司马氏，晋宣帝司马懿第二女。司马氏下嫁杜预。其侄司马炎登基时，司马氏已经去世。泰始年间（265年—274年）追赠高陵公主。',
 		},
 		characterTitle:{},
 		perfectPair:{},
@@ -3032,6 +3151,7 @@ game.import('character',function(lib,game,ui,get,ai,_status){
 		},
 		characterReplace:{
 			yanghu:['jin_yanghu','sp_yanghu'],
+			jiachong:['jin_jiachong','jiachong'],
 		},
 		translate:{
 			jin_zhangchunhua:'晋张春华',
@@ -3205,6 +3325,11 @@ game.import('character',function(lib,game,ui,get,ai,_status){
 			dezhang_info:'觉醒技。准备阶段，若你没有“绥”，则你减1点体力上限并获得〖卫戍〗。',
 			weishu:'卫戍',
 			weishu_info:'锁定技。①当你于摸牌阶段外不因〖卫戊①〗而摸牌后，你令一名角色摸一张牌。②当你于弃牌阶段外不因〖卫戊②〗而弃置牌后，你弃置一名其他角色的一张牌。',
+			jin_jiachong:'贾充',
+			xiongshu:'凶竖',
+			xiongshu_info:'其他角色的出牌阶段开始时，你可弃置X张牌（X为你本轮内此前已发动过此技能的次数，为0则不弃）并展示其一张牌，然后你预测“其本阶段内是否会使用与展示牌牌名相同的牌”。此阶段结束时，若你的预测正确，则你对其造成1点伤害；否则你获得展示牌。',
+			jianhui:'奸回',
+			jianhui_info:'锁定技。当你造成伤害后，若受伤角色为A，则你摸一张牌；当你受到伤害后，若伤害来源为A，则A弃置一张牌。（A为除本次伤害外最近一次对你造成过伤害的角色）',
 
 			yingbian_pack1:'文德武备·理',
 			yingbian_pack2:'文德武备·备',
