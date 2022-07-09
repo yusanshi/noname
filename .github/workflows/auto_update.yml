@@ -44,7 +44,7 @@ jobs:
         with:
           cache: "yarn"
 
-      - name: Generate new `sw.js`
+      - name: Generate new `sw.js` and version badge
         if: success() && steps.check_update.outputs.available == 'true'
         run: |
           yarn install --frozen-lockfile --immutable
@@ -52,6 +52,9 @@ jobs:
           cd noname
           version=$(grep -Po "(?<=version:').*(?=')" game/update.js)
           change_log=$(grep -Pzo "changeLog:\[[\S\s]*?\]" game/update.js)
+          badge_url="https:\/\/img.shields.io\/badge\/Version-${version}%20(latest)-brightgreen"
+          badge_img='![badge:version]'"(${badge_url})"
+          sed -i "s/\!\[badge:version\]\(.*\)/${badge_img}/" README.md
           git add .
           git commit -m "Upgrade to ${version}" -m "${change_log}"
 
