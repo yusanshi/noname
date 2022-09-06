@@ -29675,7 +29675,7 @@
 			if(game.online) return;
 			if(ip.indexOf('://')==-1){
 				// no protocol specified, use default protocol in config
-				ip=get.config('wss_mode','connect')?'wss://':'ws://'.concat(ip);
+				ip=(get.config('wss_mode','connect')?'wss://':'ws://').concat(ip);
 			}
 			var url=new URL(ip);
 			_status.connectCallback=callback;
