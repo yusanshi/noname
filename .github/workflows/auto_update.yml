@@ -52,7 +52,7 @@ jobs:
           cd noname
           version=$(grep -Po "(?<=version:').*(?=')" game/update.js)
           change_log=$(grep -Pzo "changeLog:\[[\S\s]*?\]" game/update.js)
-          badge_url="https:\/\/img.shields.io\/badge\/Version-${version}%20(latest)-brightgreen"
+          badge_url="https:\/\/img.shields.io\/badge\/Version-${version}-brightgreen"
           badge_img='![badge:version]'"(${badge_url})"
           sed -i "s/\!\[badge:version\]\(.*\)/${badge_img}/" README.md
           git add .
