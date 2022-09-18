@@ -12883,8 +12883,8 @@
 							}
 						}
 						var range=get.select(event.selectCard);
-						game.check();
 						if(event.isMine()){
+							game.check();
 							if(event.hsskill&&!event.forced&&_status.prehidden_skills.contains(event.hsskill)){
 								ui.click.cancel();
 								return;
@@ -13496,8 +13496,8 @@
 						event.dialog.style.display='';
 						event.dialog.open();
 					}
-					game.check();
 					if(event.isMine()){
+						game.check();
 						if(event.hsskill&&!event.forced&&_status.prehidden_skills.contains(event.hsskill)){
 							ui.click.cancel();
 							return;
@@ -13683,8 +13683,8 @@
 						};
 					}
 					else{
-						game.check();
 						if(event.isMine()){
+							game.check();
 							game.pause();
 							if(event.hsskill&&!event.forced&&_status.prehidden_skills.contains(event.hsskill)){
 								ui.click.cancel();
