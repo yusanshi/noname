@@ -7589,7 +7589,7 @@
 								0
 							);
 							ui.css.fontsheet.sheet.insertRule(
-								`@font-face {font-family: '${i}'; src: url('${lib.assetURL}font/suits.ttf');}`,
+								`@font-face {font-family: '${i}'; src: url('${lib.assetURL}font/suits.woff2') format('woff2');}`,
 								0
 							);
 						}
