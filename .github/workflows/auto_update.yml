@@ -21,7 +21,7 @@ jobs:
         run: |
           local_commit=$(curl -sL ${{ github.api_url }}/repos/${{ github.repository }}/branches/master | jq -r .commit.sha)
           remote_commit=$(curl -sL ${{ github.api_url }}/repos/${{ env.upstream_repo }}/commits | jq -r .[0].sha)
-          echo "::set-output name=available::$([ $local_commit == $remote_commit ] && echo "false" || echo "true")"
+          echo "{available}={$([ $local_commit == $remote_commit ] && echo "false" || echo "true")}" >> $GITHUB_OUTPUT
 
       - name: Checkout the PWA tool repo
         if: success() && steps.check_update.outputs.available == 'true'
