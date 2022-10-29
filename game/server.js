@@ -1,6 +1,6 @@
 (function(){
 	var WebSocketServer=require('ws').Server;
-	var wss=new WebSocketServer({port:8080});
+	var wss=new WebSocketServer({port:18080});
 	var bannedKeys=[];
 	var bannedIps=[];
 

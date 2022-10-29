@@ -41,7 +41,7 @@
 		},
 		updateURL:'https://raw.githubusercontent.com/libccy/noname',
 		mirrorURL:'https://nakamurayuri.coding.net/p/noname/d/noname/git/raw',
-		hallURL:'ws://47.99.105.222:8080',
+		hallURL:`wss://${window.location.hostname}:443/socket/`,
 		assetURL:'',
 		changeLog:[],
 		updates:[],
@@ -29815,7 +29815,7 @@
 			}
 			else{
 				var WebSocketServer=require('ws').Server;
-				var wss=new WebSocketServer({port:8080});
+				var wss=new WebSocketServer({port:18080});
 
 				game.ip=get.ip();
 
@@ -51527,8 +51527,8 @@
 			return list;
 		},
 		trimip:function(str){
-			var len=str.length-5;
-			if(str.lastIndexOf(':8080')==len){
+			var len=str.length-6;
+			if(str.lastIndexOf(':18080')==len){
 				str=str.slice(0,len);
 			}
 			return str;
