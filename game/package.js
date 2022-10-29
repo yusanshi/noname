@@ -13,7 +13,7 @@ window.noname_package={
 		sb:'谋攻篇',
 		offline:'线下武将',
 		old:'怀旧',
-		diy:'DIY',
+		//diy:'DIY', //TODO why can not hide normally
 		tw:'外服武将',
 		yxs:'英雄杀',
 		hearth:'炉石传说',
