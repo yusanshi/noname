@@ -41,7 +41,7 @@
 		},
 		updateURL:'https://raw.githubusercontent.com/libccy/noname',
 		mirrorURL:'https://nakamurayuri.coding.net/p/noname/d/noname/git/raw',
-		hallURL:`wss://${window.location.hostname}:443/socket/`,
+		hallURL:['localhost','127.0.0.1'].includes(window.location.hostname)?'wss://sanguosha.yusanshi.com:443/socket/':`wss://${window.location.hostname}:443/socket/`,
 		assetURL:'',
 		changeLog:[],
 		updates:[],
@@ -29209,7 +29209,7 @@
 	};
 	var game={
 		showIdentity: function() {
-			console.warning('[TODO] Warning: not defined!');
+			console.warn('[TODO] Warning: not defined!');
 		},
 		updateRenku:function(){
 			game.broadcast(function(renku){
