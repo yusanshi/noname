@@ -78,7 +78,7 @@ window.config={
 	alteredSkills:[],
 	brokenFile:[],
 
-	theme:'woodden',
+	theme:'simple',
 	layout:'mobile',
 	card_style:'default',
 	cardback_style:'default',
