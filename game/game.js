@@ -181,7 +181,7 @@
 					},
 					skip_shan:{
 						name:'无闪自动取消',
-						init:false,
+						init:true,
 						unfrequent:true,
 						intro:'当自己需要使用或打出【闪】时，若自己没有【闪】，则跳过该步骤',
 					},
@@ -352,7 +352,7 @@
 					show_splash:{
 						name:'显示开始界面',
 						intro:'游戏开始前进入模式选择画面',
-						init:'init',
+						init:'always',
 						item:{
 							off:'关闭',
 							init:'首次启动',
@@ -29208,6 +29208,9 @@
 		],
 	};
 	var game={
+		showIdentity: function() {
+			console.warning('[TODO] Warning: not defined!');
+		},
 		updateRenku:function(){
 			game.broadcast(function(renku){
 				_status.renku=renku;
@@ -37311,7 +37314,8 @@
 						if(!config.fixed){
 							input.contentEditable=true;
 							input.style.webkitUserSelect='text';
-							
+							input.style.whiteSpace='nowrap';
+							input.style.overflow='hidden';
 							// Only allow pasting as plain text
 							node.addEventListener('paste', function (e) {
 								e.preventDefault()
@@ -37319,7 +37323,8 @@
 								document.execCommand("insertHTML", false, text);
 							});
 						}
-						input.style.minWidth='10px';
+						input.style.minWidth='50px';
+						input.style.maxWidth='140px';
 						input.onkeydown=function(e){
 							if(e.keyCode==13){
 								e.preventDefault();
