@@ -41,7 +41,7 @@
 		},
 		updateURL:'https://raw.githubusercontent.com/libccy/noname',
 		mirrorURL:'https://nakamurayuri.coding.net/p/noname/d/noname/git/raw',
-		hallURL:['localhost','127.0.0.1'].includes(window.location.hostname)?'wss://sanguosha.yusanshi.com:443/socket/':`wss://${window.location.hostname}:443/socket/`,
+		defaultConnectURL:['localhost','127.0.0.1'].includes(window.location.hostname)?'wss://sanguosha.yusanshi.com:443/socket/':`wss://${window.location.hostname}:443/socket/`,
 		assetURL:'',
 		changeLog:[],
 		updates:[],
@@ -352,7 +352,7 @@
 					show_splash:{
 						name:'显示开始界面',
 						intro:'游戏开始前进入模式选择画面',
-						init:'always',
+						init:'off',
 						item:{
 							off:'关闭',
 							init:'首次启动',
@@ -461,7 +461,7 @@
 					max_loadtime:{
 						name:'最长载入时间',
 						intro:'设置游戏从启动到完成载入所需的最长时间，超过此时间未完成载入会报错，若设备较慢或安装了较多扩展可适当延长此时间',
-						init:'5000',
+						init:'10000',
 						unfrequent:true,
 						item:{
 							5000:'5秒',
@@ -5663,11 +5663,11 @@
 			connect:{
 				name:'联机',
 				config:{
-					connect_nickname:{
-						name:'联机昵称',
-						input:true,
-						frequent:true,
-					},
+					// connect_nickname:{
+					// 	name:'联机昵称',
+					// 	input:true,
+					// 	frequent:true,
+					// },
 					connect_avatar:{
 						name:'联机头像',
 						init:'caocao',
@@ -5678,23 +5678,23 @@
 							game.saveConfig('connect_avatar',item,'connect');
 						}
 					},
-					hall_ip:{
-						name:'联机大厅',
-						input:true,
-						frequent:true,
-					},
-					hall_button:{
-						name:'联机大厅按钮',
+					// connect_ip:{
+					// 	name:'联机地址',
+					// 	input:true,
+					// 	frequent:true,
+					// },
+					default_connect_button:{
+						name:'默认地址按钮',
 						init:true,
 						frequent:true,
 						onclick:function(bool){
-							game.saveConfig('hall_button',bool,'connect');
-							if(ui.hall_button){
+							game.saveConfig('default_connect_button',bool,'connect');
+							if(ui.default_connect_button){
 								if(bool){
-									ui.hall_button.style.display='';
+									ui.default_connect_button.style.display='';
 								}
 								else{
-									ui.hall_button.style.display='none';
+									ui.default_connect_button.style.display='none';
 								}
 							}
 						}
@@ -6862,7 +6862,7 @@
 					}
 					lib.configprefix+='_';
 				}
-				window.resetGameTimeout=setTimeout(lib.init.reset,parseInt(localStorage.getItem(lib.configprefix+'loadtime'))||5000);
+				window.resetGameTimeout=setTimeout(lib.init.reset,parseInt(localStorage.getItem(lib.configprefix+'loadtime'))||10000);
 				if(window.cordovaLoadTimeout){
 					clearTimeout(window.cordovaLoadTimeout);
 					delete window.cordovaLoadTimeout;
@@ -6883,7 +6883,7 @@
 					index=localStorage.getItem(lib.configprefix+'asserver');
 					if(index){
 						window.isNonameServer=index;
-						window.isNonameServerIp=lib.hallURL;
+						window.isNonameServerIp=lib.defaultConnectURL;
 					}
 				}
 
@@ -28465,7 +28465,7 @@
 						game.wsid=wsid;
 						lib.message.client.updaterooms(list,clients);
 						lib.message.client.updateevents(events);
-						ui.exitroom=ui.create.system('退出房间',function(){
+						ui.exitroom=ui.create.system('退出房间',function(){ // TODO change the text: 退出房间 and 退出大厅
 							game.saveConfig('tmp_owner_roomId');
 							game.saveConfig('tmp_user_roomId');
 							if(ui.rooms){
@@ -35621,6 +35621,14 @@
 			game.me=null;
 		},
 		clearConnect:function(){
+			if(ui.nicknamenode){
+				ui.nicknamenode.remove();
+				delete ui.nicknamenode;
+			}
+			if(ui.nicknametext){
+				ui.nicknametext.remove();
+				delete ui.nicknametext;
+			}
 			if(ui.ipnode){
 				ui.ipnode.remove();
 				delete ui.ipnode;
@@ -35637,9 +35645,9 @@
 				ui.recentIP.remove();
 				delete ui.recentIP;
 			}
-			if(ui.hall_button){
-				ui.hall_button.remove();
-				delete ui.hall_button;
+			if(ui.default_connect_button){
+				ui.default_connect_button.remove();
+				delete ui.default_connect_button;
 			}
 			if(ui.startServer){
 				ui.startServer.remove();
@@ -37314,8 +37322,6 @@
 						if(!config.fixed){
 							input.contentEditable=true;
 							input.style.webkitUserSelect='text';
-							input.style.whiteSpace='nowrap';
-							input.style.overflow='hidden';
 							// Only allow pasting as plain text
 							node.addEventListener('paste', function (e) {
 								e.preventDefault()
@@ -37323,6 +37329,9 @@
 								document.execCommand("insertHTML", false, text);
 							});
 						}
+						input.style.whiteSpace='nowrap';
+						input.style.overflow='hidden';
+						input.style.textAlign='right';
 						input.style.minWidth='50px';
 						input.style.maxWidth='140px';
 						input.onkeydown=function(e){
@@ -37345,14 +37354,15 @@
 								game.saveConfig('connect_nickname',input.innerHTML,'connect');
 							}
 						}
-						else if(config.name=='联机大厅'){
-							input.innerHTML=config.init||lib.hallURL;
+						else if(config.name=='联机地址'){
+							input.innerHTML=config.init||lib.defaultConnectURL;
 							input.onblur=function(){
 								if(!input.innerHTML){
-									input.innerHTML=lib.hallURL;
+									input.innerHTML=lib.defaultConnectURL;
 								}
 								input.innerHTML=input.innerHTML.replace(/<br>/g,'');
-								game.saveConfig('hall_ip',input.innerHTML,'connect');
+								game.saveConfig('connect_ip',input.innerHTML);
+								game.saveConfig('connect_ip',input.innerHTML,'connect');
 							}
 						}
 						else{

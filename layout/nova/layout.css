@@ -5,7 +5,7 @@
 #control{
     width: calc(5000% / 47 - 240px);
     left:calc(-150% / 47 + 120px);
-    bottom:150px;
+    bottom:155px;
     height: 40px;
 }
 #arena.phone #control{
@@ -161,7 +161,7 @@
 }
 .dialog{
 	height:calc(100% - 370px);
-    bottom:170px;
+    bottom:165px;
 }
 #arena.choose-character>.dialog .placeholder+.placeholder{
     display: none;
@@ -201,7 +201,7 @@
     bottom: 45px;
 }
 .dialog.fullheight {
-    height: calc(100% - 123px) !important;
+    height: calc(100% - 160px) !important;
     top: 40px !important;
 }
 

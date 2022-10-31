@@ -2055,7 +2055,7 @@ div:not(.handcards)>.card>.info>span,
 }
 .control>div {
 	position: relative;
-	padding: 3px;
+	padding: 3px 9px;
 	margin: 0
 }
 .control.disabled{

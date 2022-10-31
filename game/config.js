@@ -1,4 +1,6 @@
 window.config={
+	new_tutorial: true, // always skip the tutorial
+
 	extension_sources:{
 		GitHub:'https://raw.githubusercontent.com/libccy/noname-extension/master/',
 	},
@@ -145,7 +147,7 @@ window.config={
 	customcardpile:{},
 	addedpile:{},
 
-	mode:'identity',
+	mode:'connect',
 	mode_config:{
 		global:{
 			player_number:8,

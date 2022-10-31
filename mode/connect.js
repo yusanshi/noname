@@ -5,7 +5,9 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 		start:function(){
 			var directstartmode=lib.config.directstartmode;
 			ui.create.menu(true);
+
 			event.textnode=ui.create.div('','输入联机地址');
+			
 			var createNode=function(){
 				if(event.created) return;
 				if(directstartmode&&lib.node){
@@ -24,6 +26,58 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 				}
 
 				event.created=true;
+				{
+					const node=ui.create.div('.shadowed');
+					node.style.width='300px';
+					node.style.height='30px';
+					node.style.lineHeight='30px';
+					node.style.fontFamily='xinwei';
+					node.style.fontSize='30px';
+					node.style.padding='10px';
+					node.style.left='calc(50% - 150px)';
+					node.style.top='calc(50% - 90px)';
+					node.style.whiteSpace='nowrap';
+					node.innerHTML=get.connectNickname();
+					node.contentEditable=true;
+					node.style.webkitUserSelect='text';
+					node.style.textAlign='center';
+
+					// paste as plain text
+					node.addEventListener('paste', function (e) {
+						e.preventDefault()
+						const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+						document.execCommand("insertHTML", false, text);
+					});
+					node.onblur=function(){
+						node.innerHTML=node.innerHTML.replace(/<br>/g,'');
+						if(!node.innerHTML||get.is.banWords(node.innerHTML)){
+							node.innerHTML='无名玩家';
+						}
+						node.innerHTML=node.innerHTML.slice(0,12);
+						game.saveConfig('connect_nickname',node.innerHTML);
+						game.saveConfig('connect_nickname',node.innerHTML,'connect');
+					}
+
+					ui.window.appendChild(node);
+					ui.nicknamenode=node;
+				}
+
+				event.nicknamenode=ui.create.div('','输入联机昵称');
+				{
+					const text=event.nicknamenode;
+					text.style.width='400px';
+					text.style.height='30px';
+					text.style.lineHeight='30px';
+					text.style.fontFamily='xinwei';
+					text.style.fontSize='30px';
+					text.style.padding='10px';
+					text.style.left='calc(50% - 200px)';
+					text.style.top='calc(50% - 150px)';
+					text.style.textAlign='center';
+					ui.window.appendChild(text);
+					ui.nicknametext=text;
+				}
+
 				var node=ui.create.div('.shadowed');
 				node.style.width='600px';
 				node.style.height='30px';
@@ -32,9 +86,9 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 				node.style.fontSize='30px';
 				node.style.padding='10px';
 				node.style.left='calc(50% - 300px)';
-				node.style.top='calc(50% - 20px)';
+				node.style.top='calc(50% + 60px)';
 				node.style.whiteSpace='nowrap';
-				node.innerHTML=lib.config.last_ip||lib.hallURL;
+				node.innerHTML=lib.config.connect_ip||lib.defaultConnectURL;
 				node.contentEditable=true;
 				node.style.webkitUserSelect='text';
 				node.style.textAlign='center';
@@ -46,11 +100,14 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 					document.execCommand("insertHTML", false, text);
 				});
 
+				// TODO: bug: after modify the nickname and connecting ip, the displayed content
+				// at the top left is not changed. Need a refresh again
 				var connect=function(e){
 					event.textnode.innerHTML='正在连接...';
 					clearTimeout(event.timeout);
 					if(e) e.preventDefault();
-					game.saveConfig('last_ip',node.innerHTML);
+					game.saveConfig('connect_ip',node.innerHTML);
+					game.saveConfig('connect_ip',node.innerHTML,'connect');
 					game.connect(node.innerHTML,function(success){
 						if(!success&&event.textnode){
 							alert('连接失败');
@@ -65,7 +122,7 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 				});
 				ui.window.appendChild(node);
 				ui.ipnode=node;
-
+				
 				var text=event.textnode;
 				text.style.width='400px';
 				text.style.height='30px';
@@ -74,7 +131,7 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 				text.style.fontSize='30px';
 				text.style.padding='10px';
 				text.style.left='calc(50% - 200px)';
-				text.style.top='calc(50% - 80px)';
+				text.style.top='calc(50%)';
 				text.style.textAlign='center';
 				ui.window.appendChild(text);
 				ui.iptext=text;
@@ -82,16 +139,16 @@ game.import('mode',function(lib,game,ui,get,ai,_status){
 				var button=ui.create.div('.menubutton.highlight.large.pointerdiv','连接',connect);
 				button.style.width='70px';
 				button.style.left='calc(50% - 35px)';
-				button.style.top='calc(50% + 60px)';
+				button.style.top='calc(50% + 160px)';
 				ui.window.appendChild(button);
 				ui.ipbutton=button;
 
-				ui.hall_button=ui.create.system('联机大厅',function(){
-					node.innerHTML=get.config('hall_ip')||lib.hallURL;
+				ui.default_connect_button=ui.create.system('连接默认地址',function(){
+					node.innerHTML=lib.defaultConnectURL;
 					connect();
 				},true);
-				if(!get.config('hall_button')){
-					ui.hall_button.style.display='none';
+				if(!get.config('default_connect_button')){
+					ui.default_connect_button.style.display='none';
 				}
 				ui.recentIP=ui.create.system('最近连接',null,true);
 				var clickLink=function(){
