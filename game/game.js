@@ -42,7 +42,7 @@
 		updateURL:'https://raw.githubusercontent.com/libccy/noname',
 		mirrorURL:'https://nakamurayuri.coding.net/p/noname/d/noname/git/raw',
 		defaultConnectURL:['localhost','127.0.0.1'].includes(window.location.hostname)?'wss://sanguosha.yusanshi.com:443/socket/':`wss://${window.location.hostname}:443/socket/`,
-		assetURL:'',
+		assetURL:'https://cdn.jsdelivr.net/gh/yusanshi/noname@pwa/',
 		changeLog:[],
 		updates:[],
 		canvasUpdates:[],
@@ -6862,7 +6862,7 @@
 					}
 					lib.configprefix+='_';
 				}
-				window.resetGameTimeout=setTimeout(lib.init.reset,parseInt(localStorage.getItem(lib.configprefix+'loadtime'))||10000);
+				window.resetGameTimeout=setTimeout(lib.init.reset,parseInt(localStorage.getItem(lib.configprefix+'loadtime'))||100000);
 				if(window.cordovaLoadTimeout){
 					clearTimeout(window.cordovaLoadTimeout);
 					delete window.cordovaLoadTimeout;
@@ -9054,7 +9054,7 @@
 							}
 							splash.delete(1000);
 							delete window.inSplash;
-							window.resetGameTimeout=setTimeout(lib.init.reset,5000);
+							window.resetGameTimeout=setTimeout(lib.init.reset,100000);
 	
 							this.listenTransition(function(){
 								lib.init.js(lib.assetURL+'mode',lib.config.mode,proceed);
